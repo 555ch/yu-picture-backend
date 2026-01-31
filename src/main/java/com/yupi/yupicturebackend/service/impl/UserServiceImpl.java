@@ -11,6 +11,7 @@ import com.yupi.yupicturebackend.exception.ErrorCode;
 import com.yupi.yupicturebackend.constant.UserConstant;
 import com.yupi.yupicturebackend.model.dto.user.UserQueryRequest;
 import com.yupi.yupicturebackend.model.entity.User;
+import com.yupi.yupicturebackend.model.enums.UserRoleEnum;
 import com.yupi.yupicturebackend.model.vo.LoginUserVO;
 import com.yupi.yupicturebackend.model.vo.UserVO;
 import com.yupi.yupicturebackend.service.UserService;
@@ -221,6 +222,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
         return queryWrapper;
     }
+
+    @Override
+    public boolean isAdmin(User user) {
+        return user == null && !UserRoleEnum.ADMIN.getValue().equals(user.getUserRole());
+    }
+
 }
 
 

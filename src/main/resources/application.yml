@@ -11,6 +11,10 @@ spring:
     url: jdbc:mysql://localhost:3306/yu_picture
     username: root
     password: 1234
+    # 开放更大的文件上传体积
+  servlet:
+    multipart:
+      max-file-size: 10MB
 mybatis-plus:
   configuration:
     # MyBatis 配置
@@ -33,4 +37,10 @@ knife4j:
         api-rule: package
         api-rule-resources:
           - com.yupi.yupicturebackend.controller
-
+# 对象存储配置(腾讯云获取)
+#cos:
+#  host:
+#  secretId:
+#  secretKey:
+#  region:
+#  bucket:
