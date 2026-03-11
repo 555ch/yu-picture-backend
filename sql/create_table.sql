@@ -55,3 +55,8 @@ ALTER TABLE picture
     ADD COLUMN reviewTime DATETIME NULL COMMENT '审核时间';
 
 CREATE INDEX idx_reviewStatus ON picture (reviewStatus);
+
+
+ALTER TABLE picture
+    -- 添加新列
+    ADD COLUMN thumbnailUrl varchar(512) NULL COMMENT '缩略图 url';

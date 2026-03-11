@@ -7,7 +7,7 @@ import lombok.Getter;
  * 图片审核状态枚举
  */
 @Getter
-public enum PirtureReviewStatusEnum {
+public enum PictureReviewStatusEnum {
 
     REVIEWING("待审核", 0),
     PASS("通过", 1),
@@ -16,7 +16,7 @@ public enum PirtureReviewStatusEnum {
     private final String text;
     private final int value;
 
-    PirtureReviewStatusEnum(String text, int value) {
+    PictureReviewStatusEnum(String text, int value) {
         this.text = text;
         this.value = value;
     }
@@ -27,11 +27,11 @@ public enum PirtureReviewStatusEnum {
      * @param value 枚举值的 value
      * @return 枚举值
      */
-    public static PirtureReviewStatusEnum getEnumByValue(Integer value) {
+    public static PictureReviewStatusEnum getEnumByValue(Integer value) {
         if (ObjUtil.isEmpty(value)) {
             return null;
         }
-        for (PirtureReviewStatusEnum pirtureReviewStatusEnum : PirtureReviewStatusEnum.values()) {
+        for (PictureReviewStatusEnum pirtureReviewStatusEnum : PictureReviewStatusEnum.values()) {
             if (pirtureReviewStatusEnum.value == value) {
                 return pirtureReviewStatusEnum;
             }
