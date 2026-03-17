@@ -52,6 +52,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.awt.*;
 import java.util.*;
+import com.yupi.yupicturebackend.api.aliyunai.AliYunAiApi;
+import com.yupi.yupicturebackend.api.aliyunai.model.CreateOutPaintingTaskRequest;
+import com.yupi.yupicturebackend.api.aliyunai.model.CreateOutPaintingTaskResponse;
+import org.checkerframework.checker.units.qual.C;
 
 /**
 * @author 86152
@@ -83,6 +87,12 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
 
     @Resource
     private TransactionTemplate transactionTemplate;
+
+    @Resource
+    private AliYunAiApi aliYunAiApi;
+
+    @Resource
+    private CosUtil cosUtil;
 
     /**
      * 数据校验
@@ -642,6 +652,77 @@ public class PictureServiceImpl extends ServiceImpl<PictureMapper, Picture>
         // 5. 操作数据库进行批量更新
         boolean result = this.updateBatchById(pictureList);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "批量编辑失败");
+    }
+
+    @Override
+    public CreateOutPaintingTaskResponse createPictureOutPaintingTask(CreatePictureOutPaintingTaskRequest createPictureOutPaintingTaskRequest, User loginUser) {
+        // 获取图片信息
+        Long pictureId = createPictureOutPaintingTaskRequest.getPictureId();
+        Picture picture = Optional.ofNullable(this.getById(pictureId))
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_ERROR, "图片不存在"));
+        // 校验权限
+        checkPictureAuth(loginUser, picture);
+        
+        // 检查图片 URL 是否可访问
+        String imageUrl = picture.getUrl();
+        log.info("准备创建扩图任务，原始图片 URL: {}", imageUrl);
+        
+        // 如果图片 URL 包含签名或者是私有地址，需要生成临时公开 URL
+        // 注意：这里假设你的 COS 图片是私有读的，需要生成带签名的 URL
+        // 如果你的图片已经是公开读的，可以直接使用原始 URL
+        try {
+            // 从 URL 中提取 key（文件路径）
+            // 例如：https://chb-1399952768.cos.ap-guangzhou.myqcloud.com/space/123/xxx.jpg
+            // 需要提取出 space/123/xxx.jpg
+            String fileKey = extractFileKeyFromUrl(imageUrl);
+            if (StrUtil.isNotBlank(fileKey)) {
+                // 生成临时访问 URL（有效期 1 小时）
+                imageUrl = cosUtil.generateTemporaryUrl(fileKey, 3600);
+                log.info("生成临时图片 URL: {}", imageUrl);
+            }
+        } catch (Exception e) {
+            log.warn("生成临时 URL 失败，使用原始 URL: {}", imageUrl, e);
+        }
+        
+        // 创建扩图任务
+        CreateOutPaintingTaskRequest createOutPaintingTaskRequest = new CreateOutPaintingTaskRequest();
+        CreateOutPaintingTaskRequest.Input input = new CreateOutPaintingTaskRequest.Input();
+        input.setImageUrl(imageUrl);
+        createOutPaintingTaskRequest.setInput(input);
+        createOutPaintingTaskRequest.setParameters(createPictureOutPaintingTaskRequest.getParameters());
+        // 创建任务
+        return aliYunAiApi.createOutPaintingTask(createOutPaintingTaskRequest);
+    }
+
+    /**
+     * 从 COS URL 中提取文件 key
+     * 例如：https://bucket.cos.region.myqcloud.com/path/to/file.jpg => path/to/file.jpg
+     *
+     * @param url COS 文件 URL
+     * @return 文件 key
+     */
+    private String extractFileKeyFromUrl(String url) {
+        if (StrUtil.isBlank(url)) {
+            return null;
+        }
+        try {
+            // 找到 bucket 域名后的路径
+            // 格式：https://{bucket}.{region}.cos.{region}.myqcloud.com/{key}
+            // 或：https://{bucket}.cos.{region}.myqcloud.com/{key}
+            int questionMarkIndex = url.indexOf('?');
+            if (questionMarkIndex > 0) {
+                url = url.substring(0, questionMarkIndex);
+            }
+            
+            // 找到第一个斜杠（在域名之后）
+            int firstSlashAfterDomain = url.indexOf('/', 8); // 跳过 https://
+            if (firstSlashAfterDomain > 0) {
+                return url.substring(firstSlashAfterDomain + 1);
+            }
+        } catch (Exception e) {
+            log.error("提取文件 key 失败", e);
+        }
+        return null;
     }
 
     /**
