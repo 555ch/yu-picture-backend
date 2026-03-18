@@ -6,6 +6,7 @@ import com.yupi.yupicturebackend.model.entity.Picture;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Bean;
+import java.util.ArrayList;
 
 import java.io.Serializable;
 import java.sql.Date;
@@ -107,6 +108,11 @@ public class PictureVO implements Serializable {
      *  创建用户信息
      */
     private UserVO user;
+
+    /**
+     * 权限列表
+     */
+    private List<String> permissionList = new ArrayList<>();
 
     private static final long serialVersionUID = 1L;
 

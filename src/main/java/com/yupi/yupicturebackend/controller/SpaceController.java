@@ -19,6 +19,8 @@ import com.yupi.yupicturebackend.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
+import com.yupi.yupicturebackend.manager.auth.SpaceUserAuthManager;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -38,6 +40,9 @@ public class SpaceController {
 
     @Resource
     private SpaceService spaceService;
+
+    @Resource
+    private SpaceUserAuthManager spaceUserAuthManager;
 
     @PostMapping("/add")
     public BaseResponse<Long> addSpace(@RequestBody SpaceAddRequest spaceAddRequest, HttpServletRequest request) {
